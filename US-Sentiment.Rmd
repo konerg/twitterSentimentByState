@@ -1,0 +1,58 @@
+---
+title: "US Sentiment Map"
+author: "Goutam Koner"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+importing all necessary packages here
+
+```{r message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(ggformula)
+library(gridExtra)
+library(grid)
+library(tidyr)
+library(usmap)
+
+
+```
+
+Importing the csv file (output of python code) for analysis
+
+```{r }
+df <- read.csv("tweets_R.csv",header = TRUE)
+
+
+df <-  df %>% mutate (
+  Sentiment= case_when(
+    Sentiment == 1 ~ 'Positive',
+    Sentiment == -1 ~ 'Negative',
+    TRUE ~ 'Other')
+  )
+
+summ <- df %>% 
+group_by(State,Sentiment) %>% summarise(count=n())%>% tidyr::spread(Sentiment,count) %>%
+  mutate(percentage = round(Positive*100/(Positive+Negative),2)) %>% mutate(state= State)
+  
+
+usmap::plot_usmap(data = summ, values = "percentage", color = "blue") + 
+  scale_fill_continuous(
+    low = "red", high = "darkblue", name = "Sentiment", 
+  ) + theme(legend.position = "right") +
+  labs(title = "Statewise Twitter Sentiment Towards Social Distancing" , subtitle = "Scale: 0-100, positive > 50 , negative < 50")
+
+
+
+
+
+
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
